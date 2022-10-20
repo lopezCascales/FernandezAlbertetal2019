@@ -1,0 +1,90 @@
+datos<-read.table("atac124geneprox.txt",header=TRUE)
+
+datos1<-data.frame()
+datos2<-data.frame()
+datos3<-data.frame()
+datos4<-data.frame()
+
+for (i in 1:nrow(datos))
+{
+	if (is.na(datos$log2FoldChange.Nuc12[i])==0)
+	{
+		if(datos$log2FoldChange.Nuc12[i]>0)
+		{
+			datos1<-rbind(datos1,c(datos$peakID[i],datos$log2FoldChange.Nuc12[i]))
+		}
+		if(datos$log2FoldChange.Nuc12[i]<0)
+		{
+			datos2<-rbind(datos2,c(datos$peakID[i],datos$log2FoldChange.Nuc12[i]))
+		}
+	}
+	if (is.na(datos$log2FoldChange.Nuc13[i])==0)
+	{
+		if(datos$log2FoldChange.Nuc13[i]>0)
+		{
+			datos3<-rbind(datos3,c(datos$peakID[i],datos$log2FoldChange.Nuc13[i]))
+		}
+		if(datos$log2FoldChange.Nuc13[i]<0)
+		{
+			datos4<-rbind(datos4,c(datos$peakID[i],datos$log2FoldChange.Nuc13[i]))
+		}
+	}
+}
+names(datos1)<-c("peakID","log2FoldChange")
+names(datos2)<-c("peakID","log2FoldChange")
+names(datos3)<-c("peakID","log2FoldChange")
+names(datos4)<-c("peakID","log2FoldChange")
+
+datos1_ordenado<-datos1[with(datos1,order(log2FoldChange)),]
+datos2_ordenado<-datos2[with(datos2,order(-log2FoldChange)),]
+datos3_ordenado<-datos3[with(datos3,order(-log2FoldChange)),]
+datos4_ordenado<-datos4[with(datos4,order(log2FoldChange)),]
+
+datos1_ordenado_cont<-cbind(-nrow(datos1_ordenado):(-1),datos1_ordenado)
+datos2_ordenado_cont<-cbind(-nrow(datos2_ordenado):(-1),datos2_ordenado)
+datos3_ordenado_cont<-cbind(1:nrow(datos3_ordenado),datos3_ordenado)
+datos4_ordenado_cont<-cbind(1:nrow(datos4_ordenado),datos4_ordenado)
+
+names(datos1_ordenado_cont)[1]<-"Count"
+names(datos2_ordenado_cont)[1]<-"Count"
+names(datos3_ordenado_cont)[1]<-"Count"
+names(datos4_ordenado_cont)[1]<-"Count"
+
+ymin<-min(datos1$log2FoldChange,datos2$log2FoldChange,datos3$log2FoldChange,datos4$log2FoldChange)
+ymax<-max(datos1$log2FoldChange,datos2$log2FoldChange,datos3$log2FoldChange,datos4$log2FoldChange)
+xmin<-min(datos1_ordenado_cont$Count,datos2_ordenado_cont$Count,datos3_ordenado_cont$Count,datos4_ordenado_cont$Count)
+xmax<-max(datos1_ordenado_cont$Count,datos2_ordenado_cont$Count,datos3_ordenado_cont$Count,datos4_ordenado_cont$Count)
+
+plot(datos1_ordenado_cont$Count,datos1_ordenado_cont$log2FoldChange,yaxp=c(round(ymin,0)-1,round(ymax,0)+1,10),xaxt="n",frame.plot=F,family="mono",font.lab=2,font.axis=2,xlab="",ylab="Log2FoldChange",type="l",xlim=c(xmin, xmax), ylim=c(ymin, ymax))
+#lines(datos2_ordenado_cont$Count,datos2_ordenado_cont$log2FoldChange,type="l")
+#lines(datos3_ordenado_cont$Count,datos3_ordenado_cont$log2FoldChange,type="l")
+#lines(datos4_ordenado_cont$Count,datos4_ordenado_cont$log2FoldChange,type="l")
+lines(c(xmin,xmax),c(0,0),type="l",lwd=2)
+lines(c(0,0),c(ymin,ymax),type="l",lwd=2)
+polygon(x=c(-1,datos1_ordenado_cont$Count,-1),y=c(datos1_ordenado_cont$log2FoldChange[1],datos1_ordenado_cont$log2FoldChange,max(datos1_ordenado_cont$log2FoldChange)),col="orange")
+polygon(x=c(datos2_ordenado_cont$Count,-1,datos2_ordenado_cont$Count[1]),y=c(datos2_ordenado_cont$log2FoldChange,max(datos2_ordenado_cont$log2FoldChange),max(datos2_ordenado_cont$log2FoldChange)),col="orange")
+polygon(x=c(datos3_ordenado_cont$Count,-1),y=c(datos3_ordenado_cont$log2FoldChange,min(datos3_ordenado_cont$log2FoldChange)),col="blue")
+polygon(x=c(datos4_ordenado_cont$Count,-1),y=c(datos4_ordenado_cont$log2FoldChange,max(datos4_ordenado_cont$log2FoldChange)),col="blue")
+
+Count1<-nrow(datos1_ordenado_cont)
+Count2<-nrow(datos2_ordenado_cont)
+Count3<-nrow(datos3_ordenado_cont)
+Count4<-nrow(datos4_ordenado_cont)
+
+P1<-round(Count1/(Count1+Count2)*100,1)
+P2<-round(Count2/(Count1+Count2)*100,1)
+P3<-round(Count3/(Count3+Count4)*100,1)
+P4<-round(Count4/(Count3+Count4)*100,1)
+
+text(xmin/2, ymax/2,paste(P1,"% (",Count1,")",sep=""),family="mono",font=2)
+text(xmin/2, ymin/2,paste(P2,"% (",Count2,")",sep=""),family="mono",font=2)
+text(xmax/2, ymax/2,paste(P3,"% (",Count3,")",sep=""),family="mono",font=2)
+text(xmax/2, ymin/2,paste(P4,"% (",Count4,")",sep=""),family="mono",font=2)
+
+text(xmin/2, ymax,"Nuc12",family="mono",font=2,cex=2)
+text(xmax/2, ymax,"Nuc13",family="mono",font=2,cex=2)
+
+
+
+
+
