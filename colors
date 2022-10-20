@@ -1,0 +1,79 @@
+directory <-"/home/mycupof/Escritorio/JORDI/heatmapATAC/atac/colors"
+setwd(directory)
+
+############################################################################################################################################
+Prueba<-read.table("atac1h10891CLOSE_dend.txt",header=FALSE,fill=TRUE,sep="\t")
+n<-nrow(Prueba)
+Results<-vector()
+
+for (i in 1:n)
+{
+	aux<-as.character(Prueba[i,1])
+	m<-nchar(aux)
+	Indicator_v<-0
+	Indicator_equal<-0
+	Position_v<-0
+	Position_equal<-0
+	for (j in 1:m)
+	{
+		if (substr(aux,j,j)=="v" & Indicator_v==0)
+		{
+			Position_v<-j
+			Indicator_v<-1
+		}
+		if (substr(aux,j,j)=="=" & Indicator_equal==0)
+		{
+			Position_equal<-j
+			Indicator_equal<-1
+		}
+	}
+	if (Position_v>0 & Position_equal>0)
+	{
+		Results<-rbind(Results,as.numeric(substr(aux,Position_v+6,Position_equal-2)))	
+	}
+}
+
+library(gdata)
+library(xlsx)
+Prueba2<-read.csv("atac10891color_reduced.csv")
+Results2<-Prueba2[,c(1,7)]
+head(Results2) 
+Results3 <- as.data.frame(Results)
+names(Results3)[1] <- "peakID"
+Results4 <- merge(Results3,Results2, by='peakID',sort=F, all.x=T)
+
+for (i in 1:nrow(Results4))
+{
+                if(Results4[i,2]=="amarillo") 
+		Results4$kmeans<-2
+                if(Results4[i,2]=="Verde") 
+		Results4$kmeans<-1
+}
+head(Results4)
+write.csv(Results4,"atac10891_finalcolors.csv",row.names=FALSE)
+df <- Results4
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("ComplexHeatmap")
+library(ComplexHeatmap)
+library(circlize)
+
+#df <- read.csv("atac10891_finalcolors.csv")
+#ha = HeatmapAnnotation(df = df, col = list(Color = c("Verde" = "green", "amarillo" = "yellow")), which = "row", width = unit(0.5, "cm"))
+#draw(ha, 1:20) ### la columna 2 es la buena
+#draw(ha, 1:10891) 
+
+
+#ha = HeatmapAnnotation(df = df, col = list(Color = c("Verde" = "green", "amarillo" = "yellow")), which = "row", width = unit(0.5, "cm"))
+#draw(ha, 1:20) ### la columna 2 es la buena
+#draw(ha, 1:10891) 
+
+
+df2<-as.data.frame(Results4$Color)
+names(df2)<-"type"
+#################################################################################
+pdf("atac10891color.pdf")
+ha1 = HeatmapAnnotation(df = df2, col = list(type = c("Verde" = "green", "amarillo" = "yellow")), which = "row", width = unit(0.1, "cm"))
+draw(ha1, 1:10891)
+dev.off()
+
+#############################################################################################################################################################
